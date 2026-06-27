@@ -1,0 +1,60 @@
+name: Tissot Kernel Builder
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Pasang Library dan Dependensi Utama
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libgmp3-dev libmpfr-dev libmpc-dev
+
+      - name: Unduh Source Code Kernel Mi A1 (Tissot)
+        run: |
+          git clone https://github.com --depth=1 -b lineage-18.1 kernel-source
+
+      - name: Unduh Toolchain Google Clang
+        run: |
+          mkdir -p toolchain/clang
+          cd toolchain/clang
+          wget -q https://googlesource.com
+          tar -xzf clang-r450784d.tar.gz
+          rm clang-r450784d.tar.gz
+
+      - name: Proses Kompilasi (Compiling) Kernel
+        run: |
+          cd kernel-source
+          export PATH="${{ github.workspace }}/toolchain/clang/bin:$PATH"
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          make O=out tissot_defconfig
+          make -j$(nproc --all) O=out CC=clang
+
+      - name: Periksa Hasil Kompilasi
+        run: |
+          if [ -f kernel-source/out/arch/arm64/boot/Image.gz-dtb ]; then
+             echo "Proses Kompilasi Sukses!"
+             mkdir -p ${{ github.workspace }}/output
+             cp kernel-source/out/arch/arm64/boot/Image.gz-dtb ${{ github.workspace }}/output/
+          else
+             echo "Proses Kompilasi Gagal: File Image.gz-dtb tidak terbentuk."
+             exit 1
+          fi
+
+      - name: Unggah Hasil Kernel (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tissot-Kernel-Hasil-Compile
+          path: ${{ github.workspace }}/output/Image.gz-dtb
