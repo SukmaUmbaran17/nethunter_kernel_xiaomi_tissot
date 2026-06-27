@@ -15,23 +15,18 @@ jobs:
       - name: Ambil Kode dari Repositori Ini
         uses: actions/checkout@v4
 
-      - name: Pasang Library dan Dependensi Utama
+      - name: Pasang Library, Dependensi, dan Kompiler Lintas Sistem
         run: |
           sudo apt-get update -y
           sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libgmp3-dev libmpfr-dev libmpc-dev gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-      - name: Unduh Proton Clang Khusus Android Legacy
+      - name: Unduh Proton Clang Menggunakan Fitur Git Clone
         run: |
-          mkdir -p toolchain/clang
-          cd toolchain/clang
-          # Mengunduh biner prebuilt Proton Clang versi stabil yang sangat ramah terhadap kode msm8953
-          wget -q https://github.com
-          tar -xzf master.tar.gz --strip-components=1
-          rm master.tar.gz
+          # Melakukan clone langsung dari GitHub Proton Clang agar 100% aman dari error tar/wget
+          git clone https://github.com --depth=1 toolchain/clang
 
       - name: Proses Kompilasi (Compiling) Kernel
         run: |
-          # Memasukkan jalur binutils bawaan Proton Clang ke sistem prioritas utama
           export PATH="${{ github.workspace }}/toolchain/clang/bin:$PATH"
           export ARCH=arm64
           export SUBARCH=arm64
@@ -41,7 +36,7 @@ jobs:
           # Membuat konfigurasi bawaan Tissot
           make O=out tissot_defconfig
           
-          # Memulai kompilasi silang menggunakan ekosistem penuh bawaan Proton Clang (Anti-Unrecognized Form)
+          # Memulai kompilasi silang menggunakan ekosistem penuh bawaan Proton Clang
           make -j$(nproc --all) O=out \
                         CC=clang \
                         CROSS_COMPILE=aarch64-linux-gnu- \
