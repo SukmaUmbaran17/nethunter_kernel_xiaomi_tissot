@@ -1,0 +1,71 @@
+name: Tissot Kernel Builder
+
+on:
+  workflow_dispatch: # Memungkinkan Anda memicu proses compile secara manual lewat tombol
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04 # Menggunakan versi server Ubuntu yang stabil dan didukung penuh
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Pasang Library dan Dependensi Utama
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libssl-dev bstd tools libgmp3-dev libmpfr-dev libmpc-dev
+
+    - name: Unduh Source Code Kernel Mi A1 (Tissot)
+      run: |
+        # Mengunduh source code kernel Xiaomi Mi A1 basis Snapdragon 625 yang stabil
+        git clone https://github.com --depth=1 -b lineage-18.1 kernel-source
+
+    - name: Unduh Toolchain Google Clang & Proton Clang
+      run: |
+        mkdir toolchain
+        cd toolchain
+        # Mengunduh kompiler kustom yang optimal untuk optimasi performa kernel
+        git clone https://github.com --depth=1 clang
+
+    - name: Proses Kompilasi (Compiling) Kernel
+      run: |
+        cd kernel-source
+        
+        # Mengatur variabel lingkungan lingkungan untuk compiler
+        export PATH="${{ github.workspace }}/toolchain/clang/bin:$PATH"
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        
+        # Membuat file konfigurasi bawaan Tissot
+        make O=out tissot_defconfig
+        
+        # Memulai proses kompilasi menggunakan seluruh core prosesor server
+        make -j$(nproc --all) O=out \
+                      CC=clang \
+                      AR=llvm-ar \
+                      NM=llvm-nm \
+                      OBJCOPY=llvm-objcopy \
+                      OBJDUMP=llvm-objdump \
+                      STRIP=llvm-strip
+
+    - name: Periksa Hasil Kompilasi
+      run: |
+        # Memastikan file biner kernel berhasil terbuat di folder output
+        if [ -f kernel-source/out/arch/arm64/boot/Image.gz-dtb ]; then
+           echo "Proses Kompilasi Sukses!"
+           mkdir ${{ github.workspace }}/output
+           cp kernel-source/out/arch/arm64/boot/Image.gz-dtb ${{ github.workspace }}/output/
+        else
+           echo "Proses Kompilasi Gagal: File kernel tidak ditemukan."
+           exit 1
+        fi
+
+    - name: Unggah Hasil Kernel (Artifact)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Tissot-Kernel-ZRAM-Overclock
+        path: ${{ github.workspace }}/output/Image.gz-dtb
+        
