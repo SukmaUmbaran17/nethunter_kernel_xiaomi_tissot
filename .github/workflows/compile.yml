@@ -15,24 +15,15 @@ jobs:
       - name: Ambil Kode dari Repositori Ini
         uses: actions/checkout@v4
 
-      - name: Pasang Library dan Dependensi Utama
+      - name: Pasang Library, Dependensi, dan Clang Sistem
         run: |
           sudo apt-get update -y
-          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libgmp3-dev libmpfr-dev libmpc-dev
-
-      - name: Unduh Toolchain Clang Independen
-        run: |
-          mkdir -p toolchain/clang
-          cd toolchain/clang
-          # Mengunduh kompiler langsung dari server arsip biner yang stabil
-          wget -q https://googlesource.com
-          tar -xzf clang-r450784d.tar.gz
-          rm clang-r450784d.tar.gz
+          # Memasang clang dan lld (linker) langsung dari server repositori Ubuntu resmi agar 100% anti-gagal unduh
+          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libgmp3-dev libmpfr-dev libmpc-dev clang lld llvm
 
       - name: Proses Kompilasi (Compiling) Kernel
         run: |
-          # Mengatur variabel lingkungan lingkungan langsung ke workspace saat ini
-          export PATH="${{ github.workspace }}/toolchain/clang/bin:$PATH"
+          # Mengatur variabel lingkungan lingkungan langsung menggunakan Clang sistem Ubuntu
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
@@ -42,14 +33,17 @@ jobs:
           make O=out tissot_defconfig
           
           # Memulai kompilasi menggunakan seluruh core prosesor
-          make -j$(nproc --all) O=out CC=clang
+          make -j$(nproc --all) O=out \
+                        CC=clang \
+                        CLANG_TRIPLE=aarch64-linux-gnu- \
+                        LD=ld.lld
 
       - name: Periksa Hasil Kompilasi
         run: |
           if [ -f out/arch/arm64/boot/Image.gz-dtb ]; then
              echo "Proses Kompilasi Sukses!"
              mkdir -p ${{ github.workspace }}/output
-             cp out/arch/arm64/boot/Image.gz-dtb ${{ github.workspace }}/output/
+             cp out/arch/arch/arm64/boot/Image.gz-dtb ${{ github.workspace }}/output/ 2>/dev/null || cp out/arch/arm64/boot/Image.gz-dtb ${{ github.workspace }}/output/
           else
              echo "Proses Kompilasi Gagal: File Image.gz-dtb tidak terbentuk."
              exit 1
