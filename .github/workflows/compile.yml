@@ -15,14 +15,24 @@ jobs:
       - name: Ambil Kode dari Repositori Ini
         uses: actions/checkout@v4
 
-      - name: Pasang Library, Dependensi, dan Semua Kompiler Lengkap
+      - name: Pasang Library dan Dependensi Utama
         run: |
           sudo apt-get update -y
-          # Menambahkan paket gcc-aarch64 dan gcc-arm secara spesifik untuk memenuhi kebutuhan skrip msm8953
-          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libgmp3-dev libmpfr-dev libmpc-dev clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libgmp3-dev libmpfr-dev libmpc-dev gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+
+      - name: Unduh Proton Clang Khusus Android Legacy
+        run: |
+          mkdir -p toolchain/clang
+          cd toolchain/clang
+          # Mengunduh biner prebuilt Proton Clang versi stabil yang sangat ramah terhadap kode msm8953
+          wget -q https://github.com
+          tar -xzf master.tar.gz --strip-components=1
+          rm master.tar.gz
 
       - name: Proses Kompilasi (Compiling) Kernel
         run: |
+          # Memasukkan jalur binutils bawaan Proton Clang ke sistem prioritas utama
+          export PATH="${{ github.workspace }}/toolchain/clang/bin:$PATH"
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
@@ -31,13 +41,16 @@ jobs:
           # Membuat konfigurasi bawaan Tissot
           make O=out tissot_defconfig
           
-          # Memulai kompilasi silang menggunakan Clang didampingi GCC sistem
+          # Memulai kompilasi silang menggunakan ekosistem penuh bawaan Proton Clang (Anti-Unrecognized Form)
           make -j$(nproc --all) O=out \
                         CC=clang \
-                        CLANG_TRIPLE=aarch64-linux-gnu- \
                         CROSS_COMPILE=aarch64-linux-gnu- \
                         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-                        LD=ld.lld
+                        AR=llvm-ar \
+                        NM=llvm-nm \
+                        OBJCOPY=llvm-objcopy \
+                        OBJDUMP=llvm-objdump \
+                        STRIP=llvm-strip
 
       - name: Periksa Hasil Kompilasi
         run: |
