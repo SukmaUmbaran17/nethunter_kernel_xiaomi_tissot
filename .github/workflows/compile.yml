@@ -36,10 +36,9 @@ jobs:
       - name: Perbaiki Jalur Folder Grafis (Bypass KGSL Trace Error)
         run: |
           echo "=== Memperbaiki Jalur Include KGSL Trace ==="
-          # Menyuntikkan jalur folder grafis yang benar ke sistem kompilasi GPU
           sed -i 's|CFLAGS_kgsl_trace.o := -I$(src)|CFLAGS_kgsl_trace.o := -I$(src) -I$(srctree)/$(src)|g' drivers/gpu/msm/Makefile || true
 
-      - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Sertifikat
+      - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Pengganggu
         run: |
           CONFIG_FILE="arch/arm64/configs/tissot_defconfig"
           echo "=== Menyuntikkan Konfigurasi NetHunter ==="
@@ -55,6 +54,10 @@ jobs:
           echo "CONFIG_RTL8187=y" >> $CONFIG_FILE
           echo "CONFIG_RTL_CARDS=y" >> $CONFIG_FILE
           echo "CONFIG_RTL8192CU=y" >> $CONFIG_FILE
+          
+          echo "=== Memaksa USB HID Stabil (Fix HID Error) ==="
+          echo "CONFIG_USB_HID=y" >> $CONFIG_FILE
+          echo "CONFIG_USB_OHCI_HCD=y" >> $CONFIG_FILE
           
           echo "=== Mematikan Driver Bluetooth Bermasalah ==="
           echo "CONFIG_MSM_BT_POWER=n" >> $CONFIG_FILE
