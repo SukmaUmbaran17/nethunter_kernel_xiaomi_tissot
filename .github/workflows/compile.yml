@@ -41,12 +41,19 @@ jobs:
           echo "CONFIG_RTL8192CU=y" >> $CONFIG_FILE
           echo "=== Selesai Menyuntikkan Konfigurasi ==="
 
-      - name: Proses Kompilasi (Compiling) Kernel
+      - name: Proses Kompilasi (Compiling) Kernel + Tanda Tangan Custom
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
           export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+          
+          # ==================== TOMBOL TANDA TANGAN KAMU ====================
+          # Silakan ganti teks di dalam tanda petik sesuai nama kreasi kamu
+          export LOCALVERSION="-Umb@ran-NetHunter"
+          export KBUILD_BUILD_USER="Umb@ran"
+          export KBUILD_BUILD_HOST="Umb@ranDev-Cloud"
+          # ==================================================================
           
           # Membuat konfigurasi bawaan Tissot yang sudah disuntik fitur NetHunter
           make tissot_defconfig
