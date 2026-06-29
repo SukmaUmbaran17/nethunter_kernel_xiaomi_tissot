@@ -33,6 +33,12 @@ jobs:
           touch certs/signing_key.x509
           touch certs/x509_certificate_list
 
+      - name: Perbaiki Jalur Folder Grafis (Bypass KGSL Trace Error)
+        run: |
+          echo "=== Memperbaiki Jalur Include KGSL Trace ==="
+          # Menyuntikkan jalur folder grafis yang benar ke sistem kompilasi GPU
+          sed -i 's|CFLAGS_kgsl_trace.o := -I$(src)|CFLAGS_kgsl_trace.o := -I$(src) -I$(srctree)/$(src)|g' drivers/gpu/msm/Makefile || true
+
       - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Sertifikat
         run: |
           CONFIG_FILE="arch/arm64/configs/tissot_defconfig"
