@@ -33,10 +33,12 @@ jobs:
           touch certs/signing_key.x509
           touch certs/x509_certificate_list
 
-      - name: Perbaiki Jalur Folder Grafis (Bypass KGSL Trace Error)
+      - name: Rekayasa Paksa File Grafis (Fix KGSL Trace Error)
         run: |
-          echo "=== Memperbaiki Jalur Include KGSL Trace ==="
-          sed -i 's|CFLAGS_kgsl_trace.o := -I$(src)|CFLAGS_kgsl_trace.o := -I$(src) -I$(srctree)/$(src)|g' drivers/gpu/msm/Makefile || true
+          echo "=== Menyalin File kgsl_trace.h Langsung ke Include Path ==="
+          # Menyalin file target ke folder utama agar langsung terbaca oleh include/trace/define_trace.h
+          cp drivers/gpu/msm/kgsl_trace.h include/trace/ || true
+          cp drivers/gpu/msm/kgsl_trace.h include/trace/../../ || true
 
       - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Pengganggu
         run: |
@@ -54,10 +56,6 @@ jobs:
           echo "CONFIG_RTL8187=y" >> $CONFIG_FILE
           echo "CONFIG_RTL_CARDS=y" >> $CONFIG_FILE
           echo "CONFIG_RTL8192CU=y" >> $CONFIG_FILE
-          
-          echo "=== Memaksa USB HID Stabil (Fix HID Error) ==="
-          echo "CONFIG_USB_HID=y" >> $CONFIG_FILE
-          echo "CONFIG_USB_OHCI_HCD=y" >> $CONFIG_FILE
           
           echo "=== Mematikan Driver Bluetooth Bermasalah ==="
           echo "CONFIG_MSM_BT_POWER=n" >> $CONFIG_FILE
@@ -85,7 +83,7 @@ jobs:
           make tissot_defconfig
           
           # Memulai kompilasi total dengan mengabaikan seluruh warning
-          make -j$(nproc --all) KCFLAGS="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
+          make -j$(nproc --all) KCFLAGS="-w" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
 
       - name: Periksa Hasil Kompilasi
         run: |
