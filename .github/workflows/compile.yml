@@ -82,7 +82,7 @@ jobs:
           
           # Membuka jalur include internal secara dinamis
           export ROOT_DIR="${{ github.workspace }}"
-          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_clients -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_v2"
+          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_clients -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_v2 -I$ROOT_DIR/drivers/usb/gadget"
           
           
           # Memulai kompilasi dengan bendera toleransi tingkat tinggi (fpermissive)
