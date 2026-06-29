@@ -1,0 +1,76 @@
+name: Tissot Kernel Builder NetHunter
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - nethunter
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Ambil Kode dari Repositori Ini
+        uses: actions/checkout@v4
+
+      - name: Pasang Library dan Dependensi Lingkungan Ubuntu
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison
+
+      - name: Unduh GCC 4.9 Resmi LineageOS (Stabil & Anti-Gagal)
+        run: |
+          git clone --depth=1 "https://github.com" "${{ github.workspace }}/toolchain"
+
+      - name: Otomatisasi Suntik Fitur NetHunter (HID & Wi-Fi) ke Config
+        run: |
+          CONFIG_FILE="arch/arm64/configs/tissot_defconfig"
+          echo "=== Menyuntikkan Konfigurasi NetHunter ==="
+          echo "CONFIG_USB_G_ANDROID=y" >> $CONFIG_FILE
+          echo "CONFIG_USB_F_HID=y" >> $CONFIG_FILE
+          echo "CONFIG_CONFIGFS_F_HID=y" >> $CONFIG_FILE
+          echo "CONFIG_WIRELESS=y" >> $CONFIG_FILE
+          echo "CONFIG_CFG80211=y" >> $CONFIG_FILE
+          echo "CONFIG_MAC80211=y" >> $CONFIG_FILE
+          echo "CONFIG_CFG80211_WEXT=y" >> $CONFIG_FILE
+          echo "CONFIG_ATH_CARDS=y" >> $CONFIG_FILE
+          echo "CONFIG_ATH9K_HTC=y" >> $CONFIG_FILE
+          echo "CONFIG_RTL8187=y" >> $CONFIG_FILE
+          echo "CONFIG_RTL_CARDS=y" >> $CONFIG_FILE
+          echo "CONFIG_RTL8192CU=y" >> $CONFIG_FILE
+          echo "=== Selesai Menyuntikkan Konfigurasi ==="
+
+      - name: Proses Kompilasi (Compiling) Kernel
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CROSS_COMPILE="${{ github.workspace }}/toolchain/bin/aarch64-linux-android-"
+          
+          # Membuat konfigurasi bawaan Tissot yang sudah disuntik fitur NetHunter
+          make tissot_defconfig
+          
+          # Memulai kompilasi menggunakan semua core server GitHub
+          make -j$(nproc --all)
+
+      - name: Periksa Hasil Kompilasi
+        run: |
+          if [ -f arch/arm64/boot/Image.gz-dtb ]; then
+             echo "Proses Kompilasi Sukses!"
+             mkdir -p "${{ github.workspace }}/output"
+             cp arch/arm64/boot/Image.gz-dtb "${{ github.workspace }}/output/"
+          else
+             echo "Proses Kompilasi Gagal: File Image.gz-dtb tidak terbentuk."
+             exit 1
+          fi
+
+      - name: Unggah Hasil Kernel (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tissot-NetHunter-Kernel
+          path: ${{ github.workspace }}/output/Image.gz-dtb
+          
