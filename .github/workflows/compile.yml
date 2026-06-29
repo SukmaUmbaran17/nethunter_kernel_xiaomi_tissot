@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     permissions:
       contents: write
 
@@ -31,11 +31,6 @@ jobs:
           mkdir -p certs
           touch certs/signing_key.x509
           touch certs/x509_certificate_list
-
-      - name: Bersihkan Sisa Salinan File Kemarin
-        run: |
-          echo "=== Membersihkan folder include ==="
-          rm -f include/trace/kgsl_trace.h || true
 
       - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Pengganggu
         run: |
@@ -79,16 +74,12 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Membuka jalur folder Grafis, Media, dan Sde secara global agar tidak tersesat
-          export ROOT_DIR="${{ github.workspace }}"
-          export GLOBAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde"
-          
-          # Memulai kompilasi total dengan mengabaikan seluruh warning
-          make -j$(nproc --all) KCFLAGS="-w $GLOBAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
+          # Memulai kompilasi total pada lingkungan server Ubuntu 20.04 yang stabil
+          make -j$(nproc --all) KCFLAGS="-w" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
 
       - name: Periksa dan Amankan Hasil Kompilasi (Multi-Check)
         run: |
-          echo "=== Memulai Proses Pemindahan File Biner ==="
+          echo "=== Memmutakhirkan Proses Pemindahan File Biner ==="
           mkdir -p ${{ github.workspace }}/output
           
           if [ -f arch/arm64/boot/Image.gz-dtb ]; then
