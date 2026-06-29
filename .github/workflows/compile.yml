@@ -23,10 +23,11 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-      - name: Ambil File Bluetooth yang Hilang dari LineageOS
+      - name: Rekayasa Berkas Bluetooth yang Hilang (Anti-Gagal Jaringan)
         run: |
+          echo "=== Membuat Berkas Bluetooth Tiruan ==="
           mkdir -p drivers/bluetooth
-          wget -q "https://githubusercontent.com" -O drivers/bluetooth/btfm_slim.h
+          touch drivers/bluetooth/btfm_slim.h
 
       - name: Jinakkan File OpenSSL & Buat Kunci Tiruan (Bypass Certs Error)
         run: |
