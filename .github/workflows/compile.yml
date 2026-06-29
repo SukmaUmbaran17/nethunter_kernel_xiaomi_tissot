@@ -27,9 +27,7 @@ jobs:
         run: |
           echo "=== Menjinakkan Berkas btfm_slim ==="
           mkdir -p drivers/bluetooth
-          # Membuat berkas header kosong agar include tidak eror
           touch drivers/bluetooth/btfm_slim.h
-          # Mengosongkan file logika c agar tidak memicu error struktur data OpenSSL/Qualcomm
           echo 'int btfm_slim_register_codec(void *dev) { return 0; }' > drivers/bluetooth/btfm_slim.c
 
       - name: Jinakkan File OpenSSL & Buat Kunci Tiruan (Bypass Certs Error)
@@ -74,7 +72,7 @@ jobs:
           echo "CONFIG_MSM_CAMERA=n" >> $CONFIG_FILE
           echo "CONFIG_MSM_CAMERA_V4L2=n" >> $CONFIG_FILE
           echo "CONFIG_MSM_AVTIMER=n" >> $CONFIG_FILE
-          === Selesai Konfigurasi ===
+          echo "=== Selesai Konfigurasi ==="
 
       - name: Proses Kompilasi (Compiling) Kernel + Tanda Tangan Custom
         run: |
