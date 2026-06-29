@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
 
@@ -74,12 +74,16 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Memulai kompilasi total pada lingkungan server Ubuntu 20.04 yang stabil
-          make -j$(nproc --all) KCFLAGS="-w" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
+          # Membuka jalur include internal secara dinamis
+          export ROOT_DIR="${{ github.workspace }}"
+          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde"
+          
+          # Memulai kompilasi dengan bendera toleransi tingkat tinggi (fpermissive)
+          make -j$(nproc --all) KCFLAGS="-w -fpermissive $INTERNAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
 
       - name: Periksa dan Amankan Hasil Kompilasi (Multi-Check)
         run: |
-          echo "=== Memmutakhirkan Proses Pemindahan File Biner ==="
+          echo "=== Memulai Proses Pemindahan File Biner ==="
           mkdir -p ${{ github.workspace }}/output
           
           if [ -f arch/arm64/boot/Image.gz-dtb ]; then
