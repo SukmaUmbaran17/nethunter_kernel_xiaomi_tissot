@@ -23,7 +23,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-      - name: Otomatisasi Suntik Fitur NetHunter & Matikan Driver Bluetooth Rusak
+      - name: Otomatisasi Suntik Fitur NetHunter & Bypass Sertifikat OpenSSL
         run: |
           CONFIG_FILE="arch/arm64/configs/tissot_defconfig"
           echo "=== Menyuntikkan Konfigurasi NetHunter ==="
@@ -43,6 +43,10 @@ jobs:
           echo "=== Mematikan Driver Bluetooth Bermasalah ==="
           echo "CONFIG_MSM_BT_POWER=n" >> $CONFIG_FILE
           echo "CONFIG_BTFM_SLIM=n" >> $CONFIG_FILE
+          
+          echo "=== Mematikan Modul Sertifikat yang Memicu Error OpenSSL ==="
+          echo "CONFIG_SYSTEM_TRUSTED_KEYRING=n" >> $CONFIG_FILE
+          echo "CONFIG_SYSTEM_REVOCATION_LIST=n" >> $CONFIG_FILE
           echo "=== Selesai Konfigurasi ==="
 
       - name: Proses Kompilasi (Compiling) Kernel + Tanda Tangan Custom
@@ -61,8 +65,8 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Memulai kompilasi dengan mematikan aturan peringatan ketat (KCFLAGS="-w")
-          make -j$(nproc --all) KCFLAGS="-w"
+          # Memulai kompilasi dengan mengabaikan enkripsi sertifikat (SYSTEM_TRUSTED_KEYS="")
+          make -j$(nproc --all) KCFLAGS="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
 
       - name: Periksa Hasil Kompilasi
         run: |
