@@ -66,17 +66,17 @@ jobs:
           export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           
           # ==================== TOMBOL TANDA TANGAN KAMU ====================
-          export LOCALVERSION="-Sukma-NetHunter"
+          export LOCALVERSION="-Umbaran_01"
           export KBUILD_BUILD_USER="sukma"
-          export KBUILD_BUILD_HOST="SukmaDev-Cloud"
+          export KBUILD_BUILD_HOST="UmbaranDev-Cloud"
           # ==================================================================
           
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Membuka jalur include internal secara dinamis
+          # Membuka jalur include internal secara dinamis (Ditambahkan jalur camera_v2-legacy/isp)
           export ROOT_DIR="${{ github.workspace }}"
-          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde"
+          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/media/platform/msm/camera_v2-legacy/isp"
           
           # Memulai kompilasi dengan bendera toleransi tingkat tinggi (fpermissive)
           make -j$(nproc --all) KCFLAGS="-w -fpermissive $INTERNAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
