@@ -25,7 +25,7 @@ jobs:
 
       - name: Unduh GCC 4.9 Resmi LineageOS (Stabil & Anti-Gagal)
         run: |
-          git clone --depth=1 https://github.com ${{ github.workspace }}/toolchain
+          git clone --depth=1 "https://github.com" "${{ github.workspace }}/toolchain"
 
       - name: Otomatisasi Suntik Fitur NetHunter (HID & Wi-Fi) ke Config
         run: |
@@ -49,7 +49,7 @@ jobs:
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
-          export CROSS_COMPILE=${{ github.workspace }}/toolchain/bin/aarch64-linux-android-
+          export CROSS_COMPILE="${{ github.workspace }}/toolchain/bin/aarch64-linux-android-"
           
           # Membuat konfigurasi bawaan Tissot yang sudah disuntik fitur NetHunter
           make tissot_defconfig
@@ -61,8 +61,8 @@ jobs:
         run: |
           if [ -f arch/arm64/boot/Image.gz-dtb ]; then
              echo "Proses Kompilasi Sukses!"
-             mkdir -p ${{ github.workspace }}/output
-             cp arch/arm64/boot/Image.gz-dtb ${{ github.workspace }}/output/
+             mkdir -p "${{ github.workspace }}/output"
+             cp arch/arm64/boot/Image.gz-dtb "${{ github.workspace }}/output/"
           else
              echo "Proses Kompilasi Gagal: File Image.gz-dtb tidak terbentuk."
              exit 1
