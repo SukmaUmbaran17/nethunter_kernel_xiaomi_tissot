@@ -79,26 +79,25 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Memulai kompilasi dengan menyuntikkan jalur folder msm secara global via KCFLAGS
-          make -j$(nproc --all) KCFLAGS="-w -I${{ github.workspace }}/drivers/gpu/msm" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
+          # Membuka jalur folder Grafis, Media, dan Sde secara global agar tidak tersesat
+          export ROOT_DIR="${{ github.workspace }}"
+          export GLOBAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde"
+          
+          # Memulai kompilasi total dengan mengabaikan seluruh warning
+          make -j$(nproc --all) KCFLAGS="-w $GLOBAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
 
       - name: Periksa dan Amankan Hasil Kompilasi (Multi-Check)
         run: |
           echo "=== Memulai Proses Pemindahan File Biner ==="
           mkdir -p ${{ github.workspace }}/output
           
-          # Cek Opsi 1: Jika file gabungan Image.gz-dtb terbentuk
           if [ -f arch/arm64/boot/Image.gz-dtb ]; then
              cp arch/arm64/boot/Image.gz-dtb ${{ github.workspace }}/output/
              echo "SUKSES: File Image.gz-dtb berhasil diamankan!"
-          
-          # Cek Opsi 2: Jika file terpisah Image.gz dan dtb yang terbentuk
           elif [ -f arch/arm64/boot/Image.gz ]; then
              cp arch/arm64/boot/Image.gz ${{ github.workspace }}/output/
-             # Ikut menyalin file dtb pendukung jika ada
              find arch/arm64/boot/dts/ -name "*.dtb" -exec cp {} ${{ github.workspace }}/output/ \; 2>/dev/null || true
              echo "SUKSES: File Image.gz standar berhasil diamankan!"
-          
           else
              echo "GAGAL: Kompiladora tidak menghasilkan file biner di folder boot."
              exit 1
