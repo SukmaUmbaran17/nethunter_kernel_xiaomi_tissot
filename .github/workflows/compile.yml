@@ -32,12 +32,12 @@ jobs:
           touch certs/signing_key.x509
           touch certs/x509_certificate_list
 
-      - name: Jinakkan Fungsi Kamera Pada Driver Audio (Fix Avtimer Linking Error)
+      - name: Komentari Baris Kamera Pada Driver Audio (Fix Avtimer Type Error)
         run: |
-          echo "=== Mengosongkan Fungsi avtimer_fptr Bermasalah ==="
-          # Mengubah fungsi pemanggil kamera di file avtimer.c menjadi fungsi kosong agar tidak memicu undefined reference
+          echo "=== Menonaktifkan Baris avtimer_fptr Bermasalah ==="
+          # Menghapus atau mengomentari fungsi pemanggil kamera msm_isp agar tidak diproses sama sekali
           if [ -f techpack/audio/dsp/avtimer.c ]; then
-             sed -i 's/msm_isp_set_avtimer_fptr/printf/g' techpack/audio/dsp/avtimer.c
+             sed -i 's/msm_isp_set_avtimer_fptr(av_fptr);/\/\/ msm_isp_set_avtimer_fptr(av_fptr);/g' techpack/audio/dsp/avtimer.c
           fi
 
       - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Pengganggu Akhir
@@ -97,7 +97,7 @@ jobs:
           export ROOT_DIR="${{ github.workspace }}"
           export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_clients -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_v2 -I$ROOT_DIR/drivers/usb/gadget"
           
-          # Memulai kompilasi dengan mematikan interkoneksi avtimer & bluetooth di tingkat perintah make
+          # Memulai kompilasi dengan bendera toleransi tingkat tinggi (fpermissive)
           make -j$(nproc --all) KCFLAGS="-w -fpermissive $INTERNAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n CONFIG_MSM_AVTIMER=n CONFIG_BT=n
 
       - name: Periksa dan Amankan Hasil Kompilasi (Multi-Check)
