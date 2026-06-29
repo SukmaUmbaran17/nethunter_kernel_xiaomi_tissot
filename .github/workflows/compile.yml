@@ -23,11 +23,15 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-      - name: Jinakkan File OpenSSL bermasalah (Bypass extract-cert)
+      - name: Jinakkan File OpenSSL & Buat Kunci Tiruan (Bypass Certs Error)
         run: |
           echo "=== Menjinakkan Berkas extract-cert.c ==="
-          # Mengosongkan fungsi utama di extract-cert.c agar tidak mengeksekusi kode OpenSSL lama yang memicu error
           echo 'int main(int argc, char **argv) { return 0; }' > scripts/extract-cert.c
+          
+          echo "=== Membuat Berkas Kunci Tiruan Kosong ==="
+          mkdir -p certs
+          touch certs/signing_key.x509
+          touch certs/x509_certificate_list
 
       - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Sertifikat
         run: |
