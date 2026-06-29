@@ -32,6 +32,14 @@ jobs:
           touch certs/signing_key.x509
           touch certs/x509_certificate_list
 
+      - name: Jinakkan Fungsi Kamera Pada Driver Audio (Fix Avtimer Linking Error)
+        run: |
+          echo "=== Mengosongkan Fungsi avtimer_fptr Bermasalah ==="
+          # Mengubah fungsi pemanggil kamera di file avtimer.c menjadi fungsi kosong agar tidak memicu undefined reference
+          if [ -f techpack/audio/dsp/avtimer.c ]; then
+             sed -i 's/msm_isp_set_avtimer_fptr/printf/g' techpack/audio/dsp/avtimer.c
+          fi
+
       - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Pengganggu Akhir
         run: |
           CONFIG_FILE="arch/arm64/configs/tissot_defconfig"
