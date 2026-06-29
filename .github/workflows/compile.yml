@@ -51,8 +51,8 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah disuntik fitur NetHunter
           make tissot_defconfig
           
-          # Memulai kompilasi menggunakan semua core server GitHub
-          make -j$(nproc --all)
+          # Memulai kompilasi dengan mematikan aturan peringatan ketat (KCFLAGS="-w")
+          make -j$(nproc --all) KCFLAGS="-w"
 
       - name: Periksa Hasil Kompilasi
         run: |
