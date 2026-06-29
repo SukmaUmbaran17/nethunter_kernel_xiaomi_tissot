@@ -89,9 +89,9 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Membuka jalur include internal secara dinamis
+          # Membuka jalur include internal secara dinamis (DITAMBAHKAN FOLDER BLUETOOTH)
           export ROOT_DIR="${{ github.workspace }}"
-          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_clients -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_v2 -I$ROOT_DIR/drivers/usb/gadget"
+          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_clients -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_v2 -I$ROOT_DIR/drivers/usb/gadget -I$ROOT_DIR/drivers/bluetooth"
           
           # Memulai kompilasi dengan bendera toleransi tingkat tinggi (fpermissive)
           make -j$(nproc --all) KCFLAGS="-w -fpermissive $INTERNAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
