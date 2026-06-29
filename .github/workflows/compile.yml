@@ -23,15 +23,6 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-      - name: Jinakkan Sub-Driver Bluetooth Bermasalah (Fix Bluetooth Error)
-        run: |
-          echo "=== Menjinakkan Berkas btfm_slim ==="
-          mkdir -p drivers/bluetooth
-          # Membuat berkas header kosong agar include tidak eror
-          touch drivers/bluetooth/btfm_slim.h
-          # Mengosongkan total berkas .c agar tidak memicu fungsi kembar (multiple definition)
-          echo "" > drivers/bluetooth/btfm_slim.c
-
       - name: Jinakkan File OpenSSL & Buat Kunci Tiruan (Bypass Certs Error)
         run: |
           echo "=== Menjinakkan Berkas extract-cert.c ==="
@@ -41,7 +32,7 @@ jobs:
           touch certs/signing_key.x509
           touch certs/x509_certificate_list
 
-      - name: Otomatisasi Suntik Fitur NetHunter & Perbaikan Komponen Akhir
+      - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Pengganggu Akhir
         run: |
           CONFIG_FILE="arch/arm64/configs/tissot_defconfig"
           echo "=== Menyuntikkan Konfigurasi NetHunter ==="
@@ -58,9 +49,11 @@ jobs:
           echo "CONFIG_RTL_CARDS=y" >> $CONFIG_FILE
           echo "CONFIG_RTL8192CU=y" >> $CONFIG_FILE
           
-          echo "=== Mengaktifkan Kembali Driver Bluetooth ==="
-          echo "CONFIG_MSM_BT_POWER=y" >> $CONFIG_FILE
-          echo "CONFIG_BTFM_SLIM=y" >> $CONFIG_FILE
+          echo "=== Mematikan Total Driver Bluetooth Pengganggu ==="
+          echo "CONFIG_BT=n" >> $CONFIG_FILE
+          echo "CONFIG_MSM_BT_POWER=n" >> $CONFIG_FILE
+          echo "CONFIG_BTFM_SLIM=n" >> $CONFIG_FILE
+          echo "CONFIG_BTFM_SLIM_WCN3990=n" >> $CONFIG_FILE
           
           echo "=== Mematikan Modul Sertifikat & Solusi Linking Error ==="
           echo "CONFIG_MODULE_SIG=n" >> $CONFIG_FILE
@@ -68,7 +61,7 @@ jobs:
           echo "CONFIG_SYSTEM_TRUSTED_KEYRING=n" >> $CONFIG_FILE
           echo "CONFIG_SYSTEM_REVOCATION_LIST=n" >> $CONFIG_FILE
           
-          echo "=== Mematikan Modul Kamera & Audio Avtimer ==="
+          echo "=== Mematikan Modul Kamera & Audio Avtimer Secara Agresif ==="
           echo "CONFIG_VIDEO_V4L2_SUBDEV_API=n" >> $CONFIG_FILE
           echo "CONFIG_MEDIA_CAMERA_SUPPORT=n" >> $CONFIG_FILE
           echo "CONFIG_MSM_CAMERA=n" >> $CONFIG_FILE
@@ -94,10 +87,10 @@ jobs:
           
           # Membuka jalur include internal secara dinamis
           export ROOT_DIR="${{ github.workspace }}"
-          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_clients -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_v2 -I$ROOT_DIR/drivers/usb/gadget -I$ROOT_DIR/drivers/bluetooth"
+          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_clients -I$ROOT_DIR/drivers/platform/msm/ipa/ipa_v2 -I$ROOT_DIR/drivers/usb/gadget"
           
-          # Memulai kompilasi dengan bendera toleransi tingkat tinggi (fpermissive)
-          make -j$(nproc --all) KCFLAGS="-w -fpermissive $INTERNAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
+          # Memulai kompilasi dengan mematikan interkoneksi avtimer & bluetooth di tingkat perintah make
+          make -j$(nproc --all) KCFLAGS="-w -fpermissive $INTERNAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n CONFIG_MSM_AVTIMER=n CONFIG_BT=n
 
       - name: Periksa dan Amankan Hasil Kompilasi (Multi-Check)
         run: |
