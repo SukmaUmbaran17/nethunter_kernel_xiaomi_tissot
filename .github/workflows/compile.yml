@@ -28,17 +28,14 @@ jobs:
           echo "=== Menjinakkan Berkas extract-cert.c ==="
           echo 'int main(int argc, char **argv) { return 0; }' > scripts/extract-cert.c
           
-          echo "=== Membuat Berkas Kunci Tiruan Kosong ==="
           mkdir -p certs
           touch certs/signing_key.x509
           touch certs/x509_certificate_list
 
-      - name: Rekayasa Paksa File Grafis (Fix KGSL Trace Error)
+      - name: Bersihkan Sisa Salinan File Kemarin
         run: |
-          echo "=== Menyalin File kgsl_trace.h Langsung ke Include Path ==="
-          # Menyalin file target ke folder utama agar langsung terbaca oleh include/trace/define_trace.h
-          cp drivers/gpu/msm/kgsl_trace.h include/trace/ || true
-          cp drivers/gpu/msm/kgsl_trace.h include/trace/../../ || true
+          echo "=== Membersihkan folder include ==="
+          rm -f include/trace/kgsl_trace.h || true
 
       - name: Otomatisasi Suntik Fitur NetHunter & Matikan Modul Pengganggu
         run: |
@@ -82,8 +79,8 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Memulai kompilasi total dengan mengabaikan seluruh warning
-          make -j$(nproc --all) KCFLAGS="-w" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
+          # Memulai kompilasi dengan menyuntikkan jalur folder msm secara global via KCFLAGS
+          make -j$(nproc --all) KCFLAGS="-w -I${{ github.workspace }}/drivers/gpu/msm" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
 
       - name: Periksa Hasil Kompilasi
         run: |
