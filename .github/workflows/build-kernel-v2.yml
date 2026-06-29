@@ -23,13 +23,9 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison
 
-      - name: Unduh Google GCC 4.9 Resmi (Wajib Kompatibel untuk Kernel 4.9 Tissot)
+      - name: Unduh GCC 4.9 Resmi LineageOS (Stabil & Anti-Gagal)
         run: |
-          mkdir -p ${{ github.workspace }}/toolchain
-          cd ${{ github.workspace }}/toolchain
-          wget -q https://googlesource.com
-          tar -xf main.tar.gz
-          cd ..
+          git clone --depth=1 https://github.com ${{ github.workspace }}/toolchain
 
       - name: Otomatisasi Suntik Fitur NetHunter (HID & Wi-Fi) ke Config
         run: |
