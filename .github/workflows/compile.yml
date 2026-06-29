@@ -18,18 +18,10 @@ jobs:
       - name: Ambil Kode dari Repositori Ini
         uses: actions/checkout@v4
 
-      - name: Pasang Library dan Dependensi Lingkungan Ubuntu
+      - name: Pasang Library, Dependensi, dan Kompiler GCC Resmi
         run: |
           sudo apt-get update -y
-          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison
-
-      - name: Unduh GCC Pasca Koreksi Teknis
-        run: |
-          mkdir -p ${{ github.workspace }}/toolchain
-          cd ${{ github.workspace }}/toolchain
-          wget -q https://googlesource.com
-          tar -xf main.tar.gz
-          cd ..
+          sudo apt-get install --fix-missing -y bc build-essential libncurses5-dev libssl-dev xz-utils wget curl git cpio lz4 rsync libxml2 flex bison gcc-aarch64-linux-gnu
 
       - name: Otomatisasi Suntik Fitur NetHunter (HID & Wi-Fi) ke Config
         run: |
@@ -53,7 +45,7 @@ jobs:
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
-          export CROSS_COMPILE=${{ github.workspace }}/toolchain/bin/aarch64-linux-android-
+          export CROSS_COMPILE=aarch64-linux-gnu-
           
           # Membuat konfigurasi bawaan Tissot yang sudah disuntik fitur NetHunter
           make tissot_defconfig
