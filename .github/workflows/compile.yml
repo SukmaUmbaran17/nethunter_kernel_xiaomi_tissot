@@ -56,6 +56,12 @@ jobs:
           echo "=== Mematikan Modul Sertifikat ==="
           echo "CONFIG_SYSTEM_TRUSTED_KEYRING=n" >> $CONFIG_FILE
           echo "CONFIG_SYSTEM_REVOCATION_LIST=n" >> $CONFIG_FILE
+          
+          echo "=== Mematikan Modul Kamera Bermasalah (Fix Camera Error) ==="
+          echo "CONFIG_VIDEO_V4L2_SUBDEV_API=n" >> $CONFIG_FILE
+          echo "CONFIG_MEDIA_CAMERA_SUPPORT=n" >> $CONFIG_FILE
+          echo "CONFIG_MSM_CAMERA=n" >> $CONFIG_FILE
+          echo "CONFIG_MSM_CAMERA_V4L2=n" >> $CONFIG_FILE
           echo "=== Selesai Konfigurasi ==="
 
       - name: Proses Kompilasi (Compiling) Kernel + Tanda Tangan Custom
@@ -74,9 +80,9 @@ jobs:
           # Membuat konfigurasi bawaan Tissot yang sudah dimodifikasi
           make tissot_defconfig
           
-          # Membuka jalur include internal secara dinamis (Ditambahkan jalur camera_v2-legacy/isp)
+          # Membuka jalur include internal secara dinamis
           export ROOT_DIR="${{ github.workspace }}"
-          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde -I$ROOT_DIR/drivers/media/platform/msm/camera_v2-legacy/isp"
+          export INTERNAL_INCLUDES="-I$ROOT_DIR/drivers/gpu/msm -I$ROOT_DIR/drivers/media/platform/msm -I$ROOT_DIR/drivers/media/platform/msm/sde"
           
           # Memulai kompilasi dengan bendera toleransi tingkat tinggi (fpermissive)
           make -j$(nproc --all) KCFLAGS="-w -fpermissive $INTERNAL_INCLUDES" CFLAGS_MODULE="-w" CONFIG_SYSTEM_TRUSTED_KEYS="" CONFIG_MODULE_SIG=n
